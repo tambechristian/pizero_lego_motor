@@ -25,8 +25,8 @@ pi2 = pigpio.pi()
 pi1.set_mode(hw_pwm1, pigpio.OUTPUT)
 pi2.set_mode(hw_pwm2, pigpio.OUTPUT)
 
-pi1.set_PWM_range(hw_pwm1, 255)
-pi2.set_PWM_range(hw_pwm2, 255)
+pi1.set_PWM_range(hw_pwm1, 500) #set the pwm range
+pi2.set_PWM_range(hw_pwm2, 500) #set the pwm range
 
 pi1.set_PWM_frequency(hw_pwm1, 1200)
 print("hw pwm1 freq: {}".format(pi1.get_PWM_frequency(hw_pwm1)))
@@ -45,8 +45,6 @@ curr_pulse2 = 1500
 dc1 = 0
 dc2 = 0
 #servo1 = Servo(hw_pwm1, min_pulse_width=1/1000, max_pulse_width=2/1000, pin_factory=factory)
-#servo2 = Servo(hw_pwm2, min_pulse_width=1/1000, max_pulse_width=2/1000, pin_factory = factory)
-#servo2 = Servo(hw_pwm2, pin_factory = factory)
 
 
 from datetime import datetime
@@ -67,8 +65,6 @@ print("batt_volt = {}".format((chan.voltage)*37500 / 7500))
 volt_scale_factor = batt_volt / 12.00
 lmotors_max_volt = batt_volt / volt_scale_factor
 print("lmotors_max_volt = {}".format(lmotors_max_volt))
-
-#if (volt
 
 dc_default = 100 * (lmotors_max_volt - 3) / batt_volt
 dc_boost = 100 * lmotors_max_volt / batt_volt
@@ -105,9 +101,12 @@ while 1:
 	if pressed_keys[K_q]:
 		print("key q (quit) has been pressed")
 		pi1.set_PWM_dutycycle(hw_pwm1, 0)
+		print("pi1 dc: {}".format(pi1.get_PWM_dutycycle(hw_pwm1)))
 		pi2.set_PWM_dutycycle(hw_pwm2, 0)
-		time.sleep(0.5)
+		print("pi2 dc: {}".format(pi2.get_PWM_dutycycle(hw_pwm2)))
+		time.sleep(1)
 		pygame.quit()
+		exit()
 	if pressed_keys[K_i]:
 		time.sleep(0.5)
 		print("key i (info) has been pressed")
@@ -148,8 +147,18 @@ while 1:
 		speedbackward.start(0)
 		#speedforward.ChangeDutyCycle(dc_default)
 		#speedbackward.ChangeDutyCycle(0)
-		for steps in range (steps, 500, -10):
-			pi1.set_servo_pulsewidth(hw_pwm1, steps)
+		if (dc2 <500):
+			dc2 = dc2+1
+			pi2.set_PWM_dutycycle(hw_pwm2, dc2)
+			if (dc1 >0):
+				dc1 = dc1 -1
+				pi1.set_PWM_dutycycle(hw_pwm1, dc1)
+			else:
+				print("maximum left steer reached")
+				pi2.set_PWM_dutycycle(hw_pwm2, dc2)
+		else:
+			print("maximum left steer reached")
+			pi2.set_PWM_dutycycle(hw_pwm2, dc2)
 	elif pressed_keys[K_d] and pressed_keys[K_RIGHT]:
 		print("keys d and right has been pressed")
 		#time.sleep(0.05)
@@ -157,11 +166,21 @@ while 1:
 		speedbackward.start(0)
 		#speedforward.ChangeDutyCycle(dc_default)
 		#speedbackward.ChangeDutyCycle(0)
-		for steps in range (steps, 2500, 10):
-			pi1.set_servo_pulsewidth(hw_pwm1, steps)
+		if (dc1 <500):
+			dc1 = dc1 +1
+			pi1.set_PWM_dutycycle(hw_pwm1, dc1)
+			if (dc2 > 0):
+				dc2 = dc2 -1
+				pi2.set_PWM_dutycycle(hw_pwm2, dc2)
+			else:
+				print("maximum right steer reached")
+				pi2.set_PWM_dutycycle(hw_pwm2, dc2)
+		else:
+			print("maximum right steer reached")
+			pi1.set_PWM_dutycycle(hw_pwm1, dc1)
 	elif pressed_keys[K_RIGHT]:
 		print("key RIGHT has been pressed")
-		if (dc1 <255):
+		if (dc1 <500):
 			dc1 = dc1 +1
 			pi1.set_PWM_dutycycle(hw_pwm1, dc1)
 			if (dc2 > 0):
@@ -176,7 +195,7 @@ while 1:
 
 	elif pressed_keys[K_LEFT]:
 		print("key LEFT has been pressed")
-		if (dc2 <255):
+		if (dc2 <500):
 			dc2 = dc2+1
 			pi2.set_PWM_dutycycle(hw_pwm2, dc2)
 			if (dc1 >0):
