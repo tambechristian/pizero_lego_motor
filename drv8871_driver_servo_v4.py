@@ -6,14 +6,13 @@ pygame.init()
 display = pygame.display.set_mode((300, 300))
 
 import time
-from gpiozero import Servo
 import RPi.GPIO as GPIO
 import pigpio
 import os
 os.system('sudo pigpiod')
+#os.system('sudo killall pigpiod') #for debug
 
-from gpiozero.pins.pigpio import PiGPIOFactory
-factory = PiGPIOFactory()
+time.sleep(1) #wait a few seconds for pigpiod to start
 
 hw_pwm1 = 12
 hw_pwm2 = 13
@@ -21,28 +20,26 @@ pwm3 = 26
 pwm4 = 19
 hw_freq = 1200
 
-pi1 = pigpio.pi()
-pi2 = pigpio.pi()
-pi3 = pigpio.pi()
-pi4 = pigpio.pi()
+pi = pigpio.pi() #pigpio start to initilize
 
-pi1.set_mode(hw_pwm1, pigpio.OUTPUT)
-pi2.set_mode(hw_pwm2, pigpio.OUTPUT)
-pi3.set_mode(pwm3, pigpio.OUTPUT)
-pi4.set_mode(pwm4, pigpio.OUTPUT)
+time.sleep(1) #wait a few second to finish  initializing  the 4 Pi connections
 
-pi3.set_PWM_range(pwm3, 3000) # setting the pwm range
-pi4.set_PWM_range(pwm4, 3000) # setting the pwm range
+pi.set_mode(hw_pwm1, pigpio.OUTPUT)
+pi.set_mode(hw_pwm2, pigpio.OUTPUT)
+pi.set_mode(pwm3, pigpio.OUTPUT)
+pi.set_mode(pwm4, pigpio.OUTPUT)
 
-pi3.set_PWM_frequency(pwm3, 1200)
-print("hw pwm3 freq: {}".format(pi3.get_PWM_frequency(pwm3)))
-pi4.set_PWM_frequency(pwm4, 1200)
-print("hw pwm4 freq: {}".format(pi4.get_PWM_frequency(pwm4)))
+pi.set_PWM_range(pwm3, 3000) # setting the pwm range of L motors
+pi.set_PWM_range(pwm4, 3000) # setting the pwm range of L motors
+pi.set_PWM_frequency(pwm3, 1200)
+print("gpio pwm3 freq: {}".format(pi.get_PWM_frequency(pwm3)))
+pi.set_PWM_frequency(pwm4, 1200)
+print("gpio pwm4 freq: {}".format(pi.get_PWM_frequency(pwm4)))
 
-dc1 = 0
-dc2 = 0
-dc3 = 0
-dc4 = 0
+dc1 = 0  #dutycycle for servo left
+dc2 = 0  #dutyccle for servo right
+dc3 = 0  #dutycycle for motors forward direction
+dc4 = 0  #dutycycle for motors reverse direction
 
 from datetime import datetime
 import board
@@ -85,30 +82,26 @@ led_ain1 = 21
 led_ain2 = 20
 led_en = 16
 GPIO.setmode(GPIO.BCM)
-#GPIO.setup(pwm1, GPIO.OUT)
-#GPIO.setup(pwm2, GPIO.OUT)
 GPIO.setup(led_ain1, GPIO.OUT)
 GPIO.setup(led_ain2, GPIO.OUT)
 GPIO.setup(led_en, GPIO.OUT)
 
 GPIO.output(led_en, GPIO.HIGH)
 
-#speedforward = GPIO.PWM(pwm1, pwm_freq)
-#speedbackward = GPIO.PWM(pwm2, pwm_freq) 
-#speedforward.start(0)
-#speedbackward.start(0)
-
+leds_on = False
 
 while 1:
 	pressed_keys = pygame.key.get_pressed()
 
 	if pressed_keys[K_q]:
 		print("key q (quit) has been pressed")
-		pi1.hardware_PWM(hw_pwm1, 1000, 0)
-		pi2.hardware_PWM(hw_pwm2, 1000, 0)
+		pi.hardware_PWM(hw_pwm1, 1000, 0)
+		pi.hardware_PWM(hw_pwm2, 1000, 0)
+		pi.stop()
+		os.system('sudo killall pigpiod')
 		pygame.quit()
 		exit()
-	if pressed_keys[K_i]:
+	elif pressed_keys[K_i]:
 		time.sleep(0.5)
 		print("key i (info) has been pressed")
 		batt_volt = ((chan.voltage) * 37500 / 7500)
@@ -119,17 +112,24 @@ while 1:
 		print("lmotors_max_volt: {}".format(lmotors_max_volt))
 		if (batt_volt) <9.0:
 			print("low battery!!!")
-	if pressed_keys[K_l]:
+	elif pressed_keys[K_l]:
 		print("key l (light) has been pressed")
-		time.sleep(0.05)
-		GPIO.output(led_ain1, GPIO.HIGH)
-		GPIO.output(led_ain2, GPIO.HIGH)
-	if pressed_keys[K_o]:
+		if (leds_on == False):
+			time.sleep(0.5)
+			GPIO.output(led_ain1, GPIO.HIGH)
+			GPIO.output(led_ain2, GPIO.HIGH)
+			leds_on = True
+		else:
+			time.sleep(0.5)
+			GPIO.output(led_ain1, GPIO.LOW)
+			GPIO.output(led_ain2, GPIO.LOW)
+			leds_on = False
+	elif pressed_keys[K_o]:
 		print("keys o (light off) has been pressed")
 		time.sleep(0.05)
 		GPIO.output(led_ain1, GPIO.LOW)
 		GPIO.output(led_ain2, GPIO.LOW)
-	if pressed_keys[K_d]:
+	elif pressed_keys[K_d]:
 		#print("key d (drive) has been pressed")
 		#time.sleep(0.05)
 		#speedforward.start(dc_default)
@@ -138,15 +138,15 @@ while 1:
 		#speedbackward.ChangeDutyCycle(0)
 		#pi3.set_PWM_dutycycle(pwm3, dc_default)
 		#pi4.set_PWM_dutycycle(pwm4, 0)
-		pi4.set_PWM_dutycycle(pwm4, 0)
+		pi.set_PWM_dutycycle(pwm4, 0)
 		dc3 = 1500
 		if (dc3 < default_dutycycle):
 			dc3 = dc3 + 10
-			pi3.set_PWM_dutycycle(pwm3, dc3)
+			pi.set_PWM_dutycycle(pwm3, dc3)
 		else:
-			pi3.set_PWM_dutycycle(pwm3, dc3)
+			pi.set_PWM_dutycycle(pwm3, dc3)
 
-	if pressed_keys[K_r]:
+	elif pressed_keys[K_r]:
 		#print("key r (reverse) has been pressed")
 		#speedforward.start(0)
 		#speedbackward.start(dc_default)
@@ -154,15 +154,15 @@ while 1:
 		#speedbackward.ChangeDutyCycle(dc_default)
 		#pi4.set_PWM_dutycycle(pwm4, dc_default)
 		#pi3.set_PWM_dutycycle(pwm3, 0)
-		pi3.set_PWM_dutycycle(pwm3, 0)
+		pi.set_PWM_dutycycle(pwm3, 0)
 		dc4 = 1500
 		if (dc4 < default_dutycycle):
 			dc4 = dc4 + 10
-			pi4.set_PWM_dutycycle(pwm4, dc4)
+			pi.set_PWM_dutycycle(pwm4, dc4)
 		else:
-			pi4.set_PWM_dutycycle(pwm4, dc4)
+			pi.set_PWM_dutycycle(pwm4, dc4)
 
-	if pressed_keys[K_d] and pressed_keys[K_LEFT]:
+	elif pressed_keys[K_d] and pressed_keys[K_LEFT]:
 		#print("keys d and left has been pressed")
 		#speedforward.start(dc_default)
 		#speedbackward.start(0)
@@ -170,9 +170,9 @@ while 1:
 		#speedbackward.ChangeDutyCycle(0)
 		if (dc2 <1000000):
 			dc2 = dc2 + 500
-			pi2.hardware_PWM(hw_pwm2, 1000, dc2)
+			pi.hardware_PWM(hw_pwm2, 1000, dc2)
 		else:
-			pi2.hardware_PWM(hw_pwm2, 1000, dc2)
+			pi.hardware_PWM(hw_pwm2, 1000, dc2)
 
 	elif pressed_keys[K_d] and pressed_keys[K_RIGHT]:
 		#print("keys d and right has been pressed")
@@ -183,40 +183,40 @@ while 1:
 		#speedbackward.ChangeDutyCycle(0)
 		if (dc1 <1000000):
 			dc1 = dc1 + 500
-			pi1.hardware_PWM(hw_pwm1, 1000, dc1)
+			pi.hardware_PWM(hw_pwm1, 1000, dc1)
 		else:
-			pi1.hardware_PWM(hw_pwm1, 1000, dc1)
+			pi.hardware_PWM(hw_pwm1, 1000, dc1)
 
 	elif pressed_keys[K_RIGHT]:
 		if (dc1 <1000000):
 			dc1 = dc1 + 500
-			pi1.hardware_PWM(hw_pwm1, 1000, dc1)
+			pi.hardware_PWM(hw_pwm1, 1000, dc1)
 		else:
-			pi1.hardware_PWM(hw_pwm1, 1000, dc1)
+			pi.hardware_PWM(hw_pwm1, 1000, dc1)
 
 	elif pressed_keys[K_LEFT]:
 		if (dc2 <1000000):
 			dc2 = dc2 + 500
-			pi2.hardware_PWM(hw_pwm2, 1000, dc2)
+			pi.hardware_PWM(hw_pwm2, 1000, dc2)
 		else:
-			pi2.hardware_PWM(hw_pwm2, 1000, dc2)
+			pi.hardware_PWM(hw_pwm2, 1000, dc2)
 	else: #stop the motors if no button is pressed
 		dc1 = 0
 		dc2 = 0
-		pi1.hardware_PWM(hw_pwm1, 1000, dc1)
-		pi2.hardware_PWM(hw_pwm2, 1000, dc2)
-		pi3.set_PWM_dutycycle(pwm3, dc3)
-		pi4.set_PWM_dutycycle(pwm4, dc4) 
+		pi.hardware_PWM(hw_pwm1, 1000, dc1)
+		pi.hardware_PWM(hw_pwm2, 1000, dc2)
+		pi.set_PWM_dutycycle(pwm3, dc3)
+		pi.set_PWM_dutycycle(pwm4, dc4) 
 		if (dc3 > 0):
-			dc3 = dc3 - 1
-			pi3.set_PWM_dutycycle(pwm3, dc3)
+			dc3 = dc3 - 2
+			pi.set_PWM_dutycycle(pwm3, dc3)
 		#else:
-		#	pi3.set_PWM_dutycycle(pwm3, dc3) 
+		#	pi.set_PWM_dutycycle(pwm3, dc3) 
 		if (dc4 > 0):
-			dc4 = dc4 - 1 
-			pi4.set_PWM_dutycycle(pwm4, dc4) 
+			dc4 = dc4 - 2
+			pi.set_PWM_dutycycle(pwm4, dc4) 
 		#else:
-		#	pi4.set_PWM_dutycycle(pwm4, dc4)  
+		#	pi.set_PWM_dutycycle(pwm4, dc4)  
 
 	pygame.event.pump()
 
