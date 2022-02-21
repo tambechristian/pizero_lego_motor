@@ -62,11 +62,20 @@ print(chan.voltage, chan.voltage)
 batt_volt = ((chan.voltage) * 37500 / 7500)
 print("batt_volt = {}".format((chan.voltage)*37500 / 7500))
 
+if (batt_volt < 9.00):
+	print("Low battery!!!")
+
 volt_scale_factor = batt_volt / 12.00
 lmotors_max_volt = batt_volt / volt_scale_factor
 print("lmotors_max_volt = {}".format(lmotors_max_volt))
 
-dc_default = 100 * (lmotors_max_volt - 3) / batt_volt
+lmotors_max_volt_DutyCycle = (100 * lmotors_max_volt )/ batt_volt
+
+dc_default = 9.00 * lmotors_max_volt_DutyCycle / lmotors_max_volt
+#dc_default = 20
+print("default duty cycle is: {}".format(dc_default))
+
+#dc_default = 100 * (lmotors_max_volt - 3) / batt_volt
 dc_boost = 100 * lmotors_max_volt / batt_volt
 
 pwm1 = 26
@@ -116,6 +125,8 @@ while 1:
 		print("dc default: {}".format(dc_default))
 		print("battery voltage: {}".format(batt_volt))
 		print("lmotors_max_volt: {}".format(lmotors_max_volt))
+		if (batt_volt) <9.0:
+			print("low battery!!!")
 	if pressed_keys[K_l]:
 		print("key l (light) has been pressed")
 		time.sleep(0.05)
@@ -135,7 +146,7 @@ while 1:
 		speedforward.ChangeDutyCycle(dc_default)
 		speedbackward.ChangeDutyCycle(0)
 	if pressed_keys[K_r]:
-		print("key r (reverse) has been pressed")
+		#print("key r (reverse) has been pressed")
 		speedforward.start(0)
 		speedbackward.start(dc_default)
 		speedforward.ChangeDutyCycle(0)
