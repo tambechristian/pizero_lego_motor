@@ -71,7 +71,8 @@ print("default duty cycle is: {}".format(dc_default))
 
 #dc_default = 100 * (lmotors_max_volt - 3) / batt_volt
 
-default_dutycycle = 2250
+default_dutycycle = 2250 #1688 outputs 15V when motor running, and 10V when motor is still. it's like pwm is not even working.
+boost_dutycycle = 2250  #2250 is 3/4 on from 3000 range. it outputs about 12V with battery at 15.69V
 dc_boost = 100 * lmotors_max_volt / batt_volt
 
 pwm_freq = 1200
@@ -141,10 +142,30 @@ while 1:
 		else:
 			pi.set_PWM_dutycycle(pwm3, dc3)
 
+		if pressed_keys[K_d] and pressed_keys[K_LEFT]:
+			#print("both keys d and key left have been pressed")
+			if (dc2 <1000000):
+				dc2 = dc2 + 500
+				pi.hardware_PWM(hw_pwm2, 1000, dc2)
+			else:
+				pi.hardware_PWM(hw_pwm2, 1000, dc2)
+		else:
+			dc2 = 0
+			pi.hardware_PWM(hw_pwm2, 1000, dc2) #resetting servo motors once right key is released
+
+		if pressed_keys[K_d] and pressed_keys[K_RIGHT]:
+			#print("both key d and key right are pressed")
+			if (dc1 <1000000):
+				dc1 = dc1 + 500
+				pi.hardware_PWM(hw_pwm1, 1000, dc1)
+			else:
+				pi.hardware_PWM(hw_pwm1, 1000, dc1)
+		else:
+			dc1 = 0
+			pi.hardware_PWM(hw_pwm1, 1000, dc1) #resetting servo motors once left key is released
+
 	elif pressed_keys[K_r]:
 		#print("key r (reverse) has been pressed")
-		#pi4.set_PWM_dutycycle(pwm4, dc_default)
-		#pi3.set_PWM_dutycycle(pwm3, 0)
 		pi.set_PWM_dutycycle(pwm3, 0)
 		dc4 = 1500
 		if (dc4 < default_dutycycle):
@@ -152,38 +173,6 @@ while 1:
 			pi.set_PWM_dutycycle(pwm4, dc4)
 		else:
 			pi.set_PWM_dutycycle(pwm4, dc4)
-
-	if pressed_keys[K_d] and pressed_keys[K_LEFT]:
-		#print("both keys d and key left have been pressed")
-		pi.set_PWM_dutycycle(pwm4, 0)
-		dc3 = 1500
-		if (dc3 < default_dutycycle):
-			dc3 = dc3 + 10
-			pi.set_PWM_dutycycle(pwm3, dc3)
-		else:
-			pi.set_PWM_dutycycle(pwm3, dc3)
-
-		if (dc2 <1000000):
-			dc2 = dc2 + 500
-			pi.hardware_PWM(hw_pwm2, 1000, dc2)
-		else:
-			pi.hardware_PWM(hw_pwm2, 1000, dc2)
-
-	if pressed_keys[K_d] and pressed_keys[K_RIGHT]:
-		#print("both keys d and right have been pressed")
-		pi.set_PWM_dutycycle(pwm4, 0)
-		dc3 = 1500
-		if (dc3 < default_dutycycle):
-			dc3 = dc3 + 10
-			pi.set_PWM_dutycycle(pwm3, dc3)
-		else:
-			pi.set_PWM_dutycycle(pwm3, dc3)
-
-		if (dc1 <1000000):
-			dc1 = dc1 + 500
-			pi.hardware_PWM(hw_pwm1, 1000, dc1)
-		else:
-			pi.hardware_PWM(hw_pwm1, 1000, dc1)
 
 	elif pressed_keys[K_RIGHT]:
 		if (dc1 <1000000):
@@ -198,13 +187,16 @@ while 1:
 			pi.hardware_PWM(hw_pwm2, 1000, dc2)
 		else:
 			pi.hardware_PWM(hw_pwm2, 1000, dc2)
-	else: #stop the motors if no button is pressed
+	else:
+		# resetting servo motors
 		dc1 = 0
 		dc2 = 0
 		pi.hardware_PWM(hw_pwm1, 1000, dc1)
 		pi.hardware_PWM(hw_pwm2, 1000, dc2)
 		pi.set_PWM_dutycycle(pwm3, dc3)
-		pi.set_PWM_dutycycle(pwm4, dc4) 
+		pi.set_PWM_dutycycle(pwm4, dc4)
+
+		#gradually resetting l motors
 		if (dc3 > 0):
 			dc3 = dc3 - 2
 			pi.set_PWM_dutycycle(pwm3, dc3)
