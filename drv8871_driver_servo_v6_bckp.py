@@ -65,15 +65,13 @@ print("lmotors_max_volt = {}".format(lmotors_max_volt))
 
 lmotors_max_volt_DutyCycle = (100 * lmotors_max_volt )/ batt_volt
 
-dc_default = 9.00 * lmotors_max_volt_DutyCycle / lmotors_max_volt
-#dc_default = 20
-print("default duty cycle is: {}".format(dc_default))
-
-#dc_default = 100 * (lmotors_max_volt - 3) / batt_volt
-
-default_dutycycle = 2250 #1688 outputs 15V when motor running, and 10V when motor is still. it's like pwm is not even working.
-boost_dutycycle = 2250  #2250 is 3/4 on from 3000 range. it outputs about 12V with battery at 15.69V
-dc_boost = 100 * lmotors_max_volt / batt_volt
+#dc_default = 9.00 * lmotors_max_volt_DutyCycle / lmotors_max_volt
+default_dutycycle = (3000 * (lmotors_max_volt - 3)) / batt_volt #3000 is the max range set. -3 to get o 9V
+print("default duty cycle is: {}".format(default_dutycycle))
+boost_dutycycle = (3000 * lmotors_max_volt) / batt_volt #3000 is the max range set
+print("boost duty cycle is: {}".format(boost_dutycycle))
+#default_dutycycle = 1500  #1500 dc outputs 9V with battery at 15.6V
+#boost_dutycycle = 1688  #2250 is 3/4 on from 3000 range. it outputs about 12V with battery at 15.69V
 
 pwm_freq = 1200
 vout_default = 9
@@ -106,11 +104,12 @@ while 1:
 		time.sleep(0.5)
 		print("key i (info) has been pressed")
 		batt_volt = ((chan.voltage) * 37500 / 7500)
-		dc_default = 100 * vout_default / batt_volt
 		lmotors_max_volt = batt_volt / volt_scale_factor
-		print("dc default: {}".format(dc_default))
+		default_dutycycle = (3000 * (lmotors_max_volt - 3)) / batt_volt 
 		print("battery voltage: {}".format(batt_volt))
 		print("lmotors_max_volt: {}".format(lmotors_max_volt))
+		print("default dutycycle: {}".format(default_dutycycle))
+		print("Enter a command \n")
 		if (batt_volt) <9.0:
 			print("low battery!!!")
 	elif pressed_keys[K_l]:
@@ -135,8 +134,8 @@ while 1:
 		#pi3.set_PWM_dutycycle(pwm3, dc_default)
 		#pi4.set_PWM_dutycycle(pwm4, 0)
 		pi.set_PWM_dutycycle(pwm4, 0)
-		dc3 = 1500
-		if (dc3 < default_dutycycle):
+		dc3 = 1000  #1500
+		if (dc3 < default_dutycycle): #default_dutycycle is the threshhold; it's define at the top
 			dc3 = dc3 + 10
 			pi.set_PWM_dutycycle(pwm3, dc3)
 		else:
@@ -167,7 +166,7 @@ while 1:
 	elif pressed_keys[K_r]:
 		#print("key r (reverse) has been pressed")
 		pi.set_PWM_dutycycle(pwm3, 0)
-		dc4 = 1500
+		dc4 = 1000
 		if (dc4 < default_dutycycle):
 			dc4 = dc4 + 10
 			pi.set_PWM_dutycycle(pwm4, dc4)
@@ -187,15 +186,25 @@ while 1:
 			pi.hardware_PWM(hw_pwm2, 1000, dc2)
 		else:
 			pi.hardware_PWM(hw_pwm2, 1000, dc2)
+
+	elif pressed_keys[K_b]:
+		pi.set_PWM_dutycycle(pwm4, 0)
+		dc3 = 1500  #1500
+		if (dc3 <  boost_dutycycle): #default_dutycycle is the threshhold; it's define at the top
+			dc3 = dc3 + 10
+			pi.set_PWM_dutycycle(pwm3, dc3)
+		else:
+			pi.set_PWM_dutycycle(pwm3, dc3)
+
 	else:
 		# resetting servo motors
 		dc1 = 0
 		dc2 = 0
 		pi.hardware_PWM(hw_pwm1, 1000, dc1)
 		pi.hardware_PWM(hw_pwm2, 1000, dc2)
+
 		pi.set_PWM_dutycycle(pwm3, dc3)
 		pi.set_PWM_dutycycle(pwm4, dc4)
-
 		#gradually resetting l motors
 		if (dc3 > 0):
 			dc3 = dc3 - 2
