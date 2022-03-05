@@ -18,7 +18,7 @@ hw_pwm1 = 12
 hw_pwm2 = 13
 pwm3 = 26
 pwm4 = 19
-hw_freq = 1200
+hw_pwm_freq = 2000
 
 pi = pigpio.pi() #pigpio start to initilize
 
@@ -94,8 +94,8 @@ while 1:
 
 	if pressed_keys[K_q]:
 		print("key q (quit) has been pressed")
-		pi.hardware_PWM(hw_pwm1, 1000, 0)
-		pi.hardware_PWM(hw_pwm2, 1000, 0)
+		pi.hardware_PWM(hw_pwm1, hw_pwm_freq, 0)
+		pi.hardware_PWM(hw_pwm2, hw_pwm_freq, 0)
 		pi.stop()
 		os.system('sudo killall pigpiod')
 		pygame.quit()
@@ -145,20 +145,20 @@ while 1:
 			#print("both keys d and key left have been pressed")
 			if (dc2 <1000000):
 				dc2 = dc2 + 500
-				pi.hardware_PWM(hw_pwm2, 1000, dc2)
+				pi.hardware_PWM(hw_pwm2, hw_pwm_freq, dc2)
 			else:
-				pi.hardware_PWM(hw_pwm2, 1000, dc2)
+				pi.hardware_PWM(hw_pwm2, hw_pwm_freq, dc2)
 		else:
 			dc2 = 0
-			pi.hardware_PWM(hw_pwm2, 1000, dc2) #resetting servo motors once right key is released
+			pi.hardware_PWM(hw_pwm2, hw_pwm_freq, dc2) #resetting servo motors once right key is released
 
 		if pressed_keys[K_d] and pressed_keys[K_RIGHT]:
 			#print("both key d and key right are pressed")
 			if (dc1 <1000000):
 				dc1 = dc1 + 500
-				pi.hardware_PWM(hw_pwm1, 1000, dc1)
+				pi.hardware_PWM(hw_pwm1, hw_pwm_freq, dc1)
 			else:
-				pi.hardware_PWM(hw_pwm1, 1000, dc1)
+				pi.hardware_PWM(hw_pwm1, hw_pwm_freq, dc1)
 		else:
 			dc1 = 0
 			pi.hardware_PWM(hw_pwm1, 1000, dc1) #resetting servo motors once left key is released
@@ -174,18 +174,20 @@ while 1:
 			pi.set_PWM_dutycycle(pwm4, dc4)
 
 	elif pressed_keys[K_RIGHT]:
-		if (dc1 <1000000):
-			dc1 = dc1 + 500
-			pi.hardware_PWM(hw_pwm1, 1000, dc1)
-		else:
-			pi.hardware_PWM(hw_pwm1, 1000, dc1)
+		dc1 = dc1 + 495
+		if (dc1 < 1000000):
+			#dc1 = dc1 + 495
+			pi.hardware_PWM(hw_pwm1, hw_pwm_freq, dc1)
+		#else:
+		#	pi.hardware_PWM(hw_pwm1, hw_pwm_freq, dc1-495)
 
 	elif pressed_keys[K_LEFT]:
-		if (dc2 <1000000):
-			dc2 = dc2 + 500
-			pi.hardware_PWM(hw_pwm2, 1000, dc2)
-		else:
-			pi.hardware_PWM(hw_pwm2, 1000, dc2)
+		dc2 = dc2 + 495
+		if (dc2 < 1000000):
+			#dc2 = dc2 + 495
+			pi.hardware_PWM(hw_pwm2, hw_pwm_freq, dc2)
+		#else:
+		#	pi.hardware_PWM(hw_pwm2, hw_pwm_freq, dc2-495)
 
 	elif pressed_keys[K_b]:
 		pi.set_PWM_dutycycle(pwm4, 0)
@@ -200,8 +202,8 @@ while 1:
 		# resetting servo motors
 		dc1 = 0
 		dc2 = 0
-		pi.hardware_PWM(hw_pwm1, 1000, dc1)
-		pi.hardware_PWM(hw_pwm2, 1000, dc2)
+		pi.hardware_PWM(hw_pwm1, hw_pwm_freq, dc1)
+		pi.hardware_PWM(hw_pwm2, hw_pwm_freq, dc2)
 
 		pi.set_PWM_dutycycle(pwm3, dc3)
 		pi.set_PWM_dutycycle(pwm4, dc4)
