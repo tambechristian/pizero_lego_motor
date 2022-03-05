@@ -18,7 +18,7 @@ hw_pwm1 = 12
 hw_pwm2 = 13
 pwm3 = 26
 pwm4 = 19
-hw_pwm_freq = 2000
+hw_pwm_freq = 2500
 
 pi = pigpio.pi() #pigpio start to initilize
 
@@ -135,11 +135,13 @@ while 1:
 		#pi4.set_PWM_dutycycle(pwm4, 0)
 		pi.set_PWM_dutycycle(pwm4, 0)
 		dc3 = 1000  #1500
+		dc3 = dc3 + 10
 		if (dc3 < default_dutycycle): #default_dutycycle is the threshhold; it's define at the top
-			dc3 = dc3 + 10
+			#dc3 = dc3 + 10
 			pi.set_PWM_dutycycle(pwm3, dc3)
 		else:
-			pi.set_PWM_dutycycle(pwm3, dc3)
+			dc3 = dc3
+			#pi.set_PWM_dutycycle(pwm3, dc3)
 
 		if pressed_keys[K_d] and pressed_keys[K_LEFT]:
 			#print("both keys d and key left have been pressed")
@@ -169,18 +171,21 @@ while 1:
 		#print("key r (reverse) has been pressed")
 		pi.set_PWM_dutycycle(pwm3, 0)
 		dc4 = 1000
+		dc4 = dc4 +10
 		if (dc4 < default_dutycycle):
-			dc4 = dc4 + 10
+			#dc4 = dc4 + 10
 			pi.set_PWM_dutycycle(pwm4, dc4)
 		else:
-			pi.set_PWM_dutycycle(pwm4, dc4)
+			dc4 = dc4
+			#pi.set_PWM_dutycycle(pwm4, dc4)
 
 	elif pressed_keys[K_RIGHT]:
 		dc1 = dc1 + 495
 		if (dc1 < 1000000):
 			#dc1 = dc1 + 495
 			pi.hardware_PWM(hw_pwm1, hw_pwm_freq, dc1)
-		#else:
+		else:
+			dc1 = dc1
 		#	pi.hardware_PWM(hw_pwm1, hw_pwm_freq, dc1-495)
 
 	elif pressed_keys[K_LEFT]:
@@ -188,8 +193,8 @@ while 1:
 		if (dc2 < 1000000):
 			#dc2 = dc2 + 495
 			pi.hardware_PWM(hw_pwm2, hw_pwm_freq, dc2)
-		#else:
-		#	pi.hardware_PWM(hw_pwm2, hw_pwm_freq, dc2-495)
+		else:
+			dc2 = dc2
 
 	elif pressed_keys[K_b]:
 		pi.set_PWM_dutycycle(pwm4, 0)
