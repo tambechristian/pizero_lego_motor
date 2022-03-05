@@ -143,22 +143,24 @@ while 1:
 
 		if pressed_keys[K_d] and pressed_keys[K_LEFT]:
 			#print("both keys d and key left have been pressed")
+			dc2 = dc2 + 495
 			if (dc2 <1000000):
-				dc2 = dc2 + 500
+				#dc2 = dc2 + 500
 				pi.hardware_PWM(hw_pwm2, hw_pwm_freq, dc2)
-			else:
-				pi.hardware_PWM(hw_pwm2, hw_pwm_freq, dc2)
+			#else:
+			#	pi.hardware_PWM(hw_pwm2, hw_pwm_freq, dc2)
 		else:
 			dc2 = 0
 			pi.hardware_PWM(hw_pwm2, hw_pwm_freq, dc2) #resetting servo motors once right key is released
 
 		if pressed_keys[K_d] and pressed_keys[K_RIGHT]:
 			#print("both key d and key right are pressed")
-			if (dc1 <1000000):
-				dc1 = dc1 + 500
+			dc1 = dc1 + 495
+			if (dc1 < 1000000):
+				#dc1 = dc1 + 500
 				pi.hardware_PWM(hw_pwm1, hw_pwm_freq, dc1)
-			else:
-				pi.hardware_PWM(hw_pwm1, hw_pwm_freq, dc1)
+			#else:
+			#	pi.hardware_PWM(hw_pwm1, hw_pwm_freq, dc1)
 		else:
 			dc1 = 0
 			pi.hardware_PWM(hw_pwm1, 1000, dc1) #resetting servo motors once left key is released
