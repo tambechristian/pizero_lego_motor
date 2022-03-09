@@ -8,7 +8,8 @@ frame = 0
 
 #Set up & start camera, & let it settle
 camera = PiCamera()
-camera.resolution = (1920, 1080)
+camera.resolution = (800, 600)
+#camera.resolution = (1920, 1080)
 #camera.resolution = (4056, 3040)
 camera.start_preview()
 time.sleep(2)

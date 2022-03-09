@@ -10,7 +10,7 @@ from datetime import datetime
 
 #setup camera
 camera = PiCamera()
-camera.resolution = (1280, 720)
+camera.resolution = (800, 600)
 camera.framerate = (25)
 
 record = 0
