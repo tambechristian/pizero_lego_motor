@@ -5,7 +5,7 @@ from datetime import datetime
 import sys
 
 pygame.init()
-display = pygame.display.set_mode((300, 300))
+display = pygame.display.set_mode((240, 160)) #240, 160
 
 import time
 import RPi.GPIO as GPIO
